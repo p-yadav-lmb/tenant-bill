@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tenant Bill Generator</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f0f0f;
+    --surface: #1a1a1a;
+    --surface2: #242424;
+    --border: #2e2e2e;
+    --accent: #f5c842;
+    --accent2: #42c8f5;
+    --text: #f0f0f0;
+    --muted: #888;
+    --success: #4ade80;
+    --red: #f87171;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    min-height: 100vh;
+    padding: 2rem 1rem;
+  }
+
+  .container {
+    max-width: 680px;
+    margin: 0 auto;
+  }
+
+  header {
+    margin-bottom: 2.5rem;
+    border-left: 4px solid var(--accent);
+    padding-left: 1rem;
+  }
+
+  header h1 {
+    font-size: 2rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    color: var(--accent);
+  }
+
+  header p {
+    color: var(--muted);
+    font-size: 0.85rem;
+    margin-top: 0.25rem;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .card-title {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .card-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+
+  .field.full { grid-column: 1 / -1; }
+
+  label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  input {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.65rem 0.85rem;
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.95rem;
+    outline: none;
+    transition: border-color 0.2s;
+    width: 100%;
+  }
+
+  input:focus {
+    border-color: var(--accent);
+  }
+
+  input::placeholder { color: #444; }
+
+  .calc-line {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.88rem;
+  }
+
+  .calc-line:last-child { border-bottom: none; }
+
+  .calc-line .label { color: var(--muted); }
+
+  .calc-line .value {
+    font-family: 'DM Mono', monospace;
+    font-weight: 500;
+    color: var(--text);
+  }
+
+  .calc-line.total .label {
+    color: var(--text);
+    font-weight: 700;
+    font-size: 1rem;
+  }
+
+  .calc-line.total .value {
+    color: var(--accent);
+    font-size: 1.2rem;
+    font-weight: 700;
+  }
+
+  .btn {
+    width: 100%;
+    padding: 0.9rem;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 0.95rem;
+    letter-spacing: 0.04em;
+    transition: all 0.2s;
+  }
+
+  .btn-primary {
+    background: var(--accent);
+    color: #0f0f0f;
+    margin-bottom: 0.75rem;
+  }
+
+  .btn-primary:hover { background: #f7d060; transform: translateY(-1px); }
+
+  .btn-copy {
+    background: var(--surface2);
+    color: var(--accent2);
+    border: 1px solid var(--accent2);
+  }
+
+  .btn-copy:hover { background: rgba(66, 200, 245, 0.1); }
+
+  .message-box {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.2rem;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.82rem;
+    line-height: 1.8;
+    color: var(--text);
+    white-space: pre-wrap;
+    word-break: break-word;
+    margin-bottom: 1rem;
+    min-height: 120px;
+  }
+
+  .toast {
+    position: fixed;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: var(--success);
+    color: #0f0f0f;
+    padding: 0.65rem 1.4rem;
+    border-radius: 50px;
+    font-weight: 700;
+    font-size: 0.85rem;
+    transition: transform 0.3s ease;
+    z-index: 999;
+  }
+
+  .toast.show { transform: translateX(-50%) translateY(0); }
+
+  .badge {
+    display: inline-block;
+    background: rgba(245, 200, 66, 0.12);
+    color: var(--accent);
+    font-size: 0.7rem;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    font-family: 'DM Mono', monospace;
+    margin-left: 0.5rem;
+    vertical-align: middle;
+  }
+
+  @media (max-width: 480px) {
+    .row { grid-template-columns: 1fr; }
+    header h1 { font-size: 1.5rem; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>🏠 Bill Generator</h1>
+    <p>Fill in the details → get a ready-to-send tenant message</p>
+  </header>
+
+  <!-- Room & Rent -->
+  <div class="card">
+    <div class="card-title">Basic Info</div>
+    <div class="row">
+      <div class="field">
+        <label>Room Number</label>
+        <input type="text" id="room" placeholder="e.g. B4" oninput="calculate()">
+      </div>
+      <div class="field">
+        <label>Rent (₹)</label>
+        <input type="number" id="rent" placeholder="7000" oninput="calculate()">
+      </div>
+    </div>
+  </div>
+
+  <!-- Electric -->
+  <div class="card">
+    <div class="card-title">⚡ Electricity</div>
+    <div class="row">
+      <div class="field">
+        <label>Previous Reading</label>
+        <input type="number" id="prevElec" placeholder="69" oninput="calculate()">
+      </div>
+      <div class="field">
+        <label>New Reading</label>
+        <input type="number" id="newElec" placeholder="117" oninput="calculate()">
+      </div>
+    </div>
+    <div class="field">
+      <label>Rate per Unit (₹)</label>
+      <input type="number" id="elecRate" placeholder="11" value="11" oninput="calculate()">
+    </div>
+  </div>
+
+  <!-- Water -->
+  <div class="card">
+    <div class="card-title">💧 Water</div>
+    <div class="row">
+      <div class="field">
+        <label>Previous Reading</label>
+        <input type="number" id="prevWater" placeholder="15704" oninput="calculate()">
+      </div>
+      <div class="field">
+        <label>New Reading</label>
+        <input type="number" id="newWater" placeholder="22977" oninput="calculate()">
+      </div>
+    </div>
+    <div class="row">
+      <div class="field">
+        <label>Rate per KL (₹)</label>
+        <input type="number" id="waterRate" placeholder="50" value="50" oninput="calculate()">
+      </div>
+      <div class="field">
+        <label>Divide by (liters/KL)</label>
+        <input type="number" id="waterDiv" placeholder="1000" value="1000" oninput="calculate()">
+      </div>
+    </div>
+  </div>
+
+  <!-- Other Charges -->
+  <div class="card">
+    <div class="card-title">📋 Other Charges</div>
+    <div class="row">
+      <div class="field">
+        <label>Maintenance / Other (₹)</label>
+        <input type="number" id="other" placeholder="200" oninput="calculate()">
+      </div>
+      <div class="field">
+        <label>Month & Year</label>
+        <input type="text" id="month" placeholder="June 2025" oninput="calculate()">
+      </div>
+    </div>
+  </div>
+
+  <!-- Breakdown -->
+  <div class="card" id="breakdownCard">
+    <div class="card-title">📊 Breakdown</div>
+    <div class="calc-line">
+      <span class="label">Rent</span>
+      <span class="value" id="b-rent">₹ –</span>
+    </div>
+    <div class="calc-line">
+      <span class="label">Electricity (<span id="b-units">–</span> units × ₹<span id="b-erate">–</span>)</span>
+      <span class="value" id="b-elec">₹ –</span>
+    </div>
+    <div class="calc-line">
+      <span class="label">Water (<span id="b-kl">–</span> KL × ₹<span id="b-wrate">–</span>)</span>
+      <span class="value" id="b-water">₹ –</span>
+    </div>
+    <div class="calc-line">
+      <span class="label">Other Charges</span>
+      <span class="value" id="b-other">₹ –</span>
+    </div>
+    <div class="calc-line total">
+      <span class="label">Total Due</span>
+      <span class="value" id="b-total">₹ –</span>
+    </div>
+  </div>
+
+  <!-- Message Output -->
+  <div class="card">
+    <div class="card-title">✉️ Message Preview</div>
+    <div class="message-box" id="messageBox">Fill the fields above to generate your message...</div>
+    <button class="btn btn-copy" onclick="copyMessage()">📋 Copy Message</button>
+  </div>
+</div>
+
+<div class="toast" id="toast">✅ Copied to clipboard!</div>
+
+<script>
+function n(id) { return parseFloat(document.getElementById(id).value) || 0; }
+function t(id) { return document.getElementById(id).value.trim(); }
+
+function calculate() {
+  const room = t('room');
+  const rent = n('rent');
+  const prevElec = n('prevElec');
+  const newElec = n('newElec');
+  const elecRate = n('elecRate');
+  const prevWater = n('prevWater');
+  const newWater = n('newWater');
+  const waterRate = n('waterRate');
+  const waterDiv = n('waterDiv') || 1000;
+  const other = n('other');
+  const month = t('month');
+
+  const elecUnits = Math.max(0, newElec - prevElec);
+  const elecBill = elecUnits * elecRate;
+
+  const waterUnitsRaw = Math.max(0, newWater - prevWater);
+  const waterKL = waterDiv > 0 ? waterUnitsRaw / waterDiv : 0;
+  const waterBill = waterKL * waterRate;
+
+  const total = rent + elecBill + waterBill + other;
+
+  // Update breakdown
+  document.getElementById('b-rent').textContent = `₹ ${rent.toLocaleString('en-IN')}`;
+  document.getElementById('b-units').textContent = elecUnits;
+  document.getElementById('b-erate').textContent = elecRate;
+  document.getElementById('b-elec').textContent = `₹ ${Math.round(elecBill).toLocaleString('en-IN')}`;
+  document.getElementById('b-kl').textContent = waterKL.toFixed(3);
+  document.getElementById('b-wrate').textContent = waterRate;
+  document.getElementById('b-water').textContent = `₹ ${Math.round(waterBill).toLocaleString('en-IN')}`;
+  document.getElementById('b-other').textContent = `₹ ${other.toLocaleString('en-IN')}`;
+  document.getElementById('b-total').textContent = `₹ ${Math.round(total).toLocaleString('en-IN')}`;
+
+  // Generate message
+  const msg = generateMessage({
+    room, month, rent,
+    prevElec, newElec, elecUnits, elecRate, elecBill,
+    prevWater, newWater, waterUnitsRaw, waterDiv, waterKL, waterRate, waterBill,
+    other, total
+  });
+
+  document.getElementById('messageBox').textContent = msg;
+}
+
+function generateMessage(d) {
+  if (!d.room && !d.rent && !d.newElec) return 'Fill the fields above to generate your message...';
+
+  const fmt = (n) => Math.round(n).toLocaleString('en-IN');
+  const monthLine = d.month ? `*Month: ${d.month}*` : '';
+
+  let msg = `🏠 *Rent Bill – Room ${d.room || '—'}*`;
+  if (monthLine) msg += `\n${monthLine}`;
+  msg += `\n\n`;
+
+  if (d.newElec || d.prevElec) {
+    msg += `⚡ *Electricity*\n`;
+    msg += `   New Reading     : ${d.newElec}\n`;
+    msg += `   Previous Reading: ${d.prevElec}\n`;
+    msg += `   Units Used      : ${d.newElec} - ${d.prevElec} = ${d.elecUnits}\n`;
+    msg += `   Electric Bill   : ${d.elecUnits} × ₹${d.elecRate} = ₹${fmt(d.elecBill)}\n\n`;
+  }
+
+  if (d.newWater || d.prevWater) {
+    msg += `💧 *Water*\n`;
+    msg += `   New Reading     : ${d.newWater}\n`;
+    msg += `   Previous Reading: ${d.prevWater}\n`;
+    msg += `   Units Used      : ${d.newWater} - ${d.prevWater} = ${d.waterUnitsRaw} ÷ ${d.waterDiv} = ${d.waterKL.toFixed(3)} KL\n`;
+    msg += `   Water Bill      : ${d.waterKL.toFixed(3)} × ₹${d.waterRate} = ₹${fmt(d.waterBill)}\n\n`;
+  }
+
+  msg += `📋 *Bill Summary*\n`;
+  msg += `   Rent            : ₹${fmt(d.rent)}\n`;
+  if (d.newElec || d.prevElec) msg += `   Electricity     : ₹${fmt(d.elecBill)}\n`;
+  if (d.newWater || d.prevWater) msg += `   Water           : ₹${fmt(d.waterBill)}\n`;
+  if (d.other) msg += `   Other Charges   : ₹${fmt(d.other)}\n`;
+  msg += `   ─────────────────────────\n`;
+  msg += `   *Total Due      : ₹${fmt(d.total)}*\n\n`;
+  msg += `Please pay by the 5th. Thank you! 🙏`;
+
+  return msg;
+}
+
+function copyMessage() {
+  const text = document.getElementById('messageBox').textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const toast = document.getElementById('toast');
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 2500);
+  });
+}
+
+// Init with example values
+window.onload = () => {
+  document.getElementById('room').value = 'B4';
+  document.getElementById('rent').value = '7000';
+  document.getElementById('prevElec').value = '69';
+  document.getElementById('newElec').value = '117';
+  document.getElementById('elecRate').value = '11';
+  document.getElementById('prevWater').value = '15704';
+  document.getElementById('newWater').value = '22977';
+  document.getElementById('waterRate').value = '50';
+  document.getElementById('waterDiv').value = '1000';
+  document.getElementById('other').value = '200';
+  document.getElementById('month').value = 'June 2025';
+  calculate();
+};
+</script>
+</body>
+</html>
