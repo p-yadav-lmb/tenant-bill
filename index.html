@@ -426,7 +426,7 @@ function generateMessage(d) {
   msg += `   Rent            : ₹${fmt(d.rent)}\n`;
   if (d.newElec || d.prevElec) msg += `   Electricity     : ₹${fmt(d.elecBill)}\n`;
   if (d.newWater || d.prevWater) msg += `   Water           : ₹${fmt(d.waterBill)}\n`;
-  if (d.other) msg += `   Other Charges   : ₹${fmt(d.other)}\n`;
+  if (d.other) msg += `   Outer Cleaning/Garbage Collection   : ₹${fmt(d.other)}\n`;
   msg += `   ─────────────────────────\n`;
   msg += `   *Total Due      : ₹${fmt(d.total)}*\n\n`;
   msg += `Please pay the bill and share the Payment Screenshot. Thank you! 🙏`;
