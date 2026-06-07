@@ -214,18 +214,6 @@
 
   .toast.show { transform: translateX(-50%) translateY(0); }
 
-  .badge {
-    display: inline-block;
-    background: rgba(245, 200, 66, 0.12);
-    color: var(--accent);
-    font-size: 0.7rem;
-    padding: 0.2rem 0.5rem;
-    border-radius: 4px;
-    font-family: 'DM Mono', monospace;
-    margin-left: 0.5rem;
-    vertical-align: middle;
-  }
-
   @media (max-width: 480px) {
     .row { grid-template-columns: 1fr; }
     header h1 { font-size: 1.5rem; }
@@ -249,7 +237,7 @@
       </div>
       <div class="field">
         <label>Rent (₹)</label>
-        <input type="number" id="rent" placeholder="7000" oninput="calculate()">
+        <input type="number" id="rent" placeholder="e.g. 7000" oninput="calculate()">
       </div>
     </div>
   </div>
@@ -260,11 +248,11 @@
     <div class="row">
       <div class="field">
         <label>Previous Reading</label>
-        <input type="number" id="prevElec" placeholder="69" oninput="calculate()">
+        <input type="number" id="prevElec" placeholder="e.g. 69" oninput="calculate()">
       </div>
       <div class="field">
         <label>New Reading</label>
-        <input type="number" id="newElec" placeholder="117" oninput="calculate()">
+        <input type="number" id="newElec" placeholder="e.g. 117" oninput="calculate()">
       </div>
     </div>
     <div class="field">
@@ -279,11 +267,11 @@
     <div class="row">
       <div class="field">
         <label>Previous Reading</label>
-        <input type="number" id="prevWater" placeholder="15704" oninput="calculate()">
+        <input type="number" id="prevWater" placeholder="e.g. 15704" oninput="calculate()">
       </div>
       <div class="field">
         <label>New Reading</label>
-        <input type="number" id="newWater" placeholder="22977" oninput="calculate()">
+        <input type="number" id="newWater" placeholder="e.g. 22977" oninput="calculate()">
       </div>
     </div>
     <div class="row">
@@ -304,11 +292,11 @@
     <div class="row">
       <div class="field">
         <label>Maintenance / Other (₹)</label>
-        <input type="number" id="other" placeholder="200" oninput="calculate()">
+        <input type="number" id="other" placeholder="e.g. 200" oninput="calculate()">
       </div>
       <div class="field">
         <label>Month & Year</label>
-        <input type="text" id="month" placeholder="June 2025" oninput="calculate()">
+        <input type="text" id="month" placeholder="June 2026" oninput="calculate()">
       </div>
     </div>
   </div>
@@ -374,7 +362,6 @@ function calculate() {
 
   const total = rent + elecBill + waterBill + other;
 
-  // Update breakdown
   document.getElementById('b-rent').textContent = `₹ ${rent.toLocaleString('en-IN')}`;
   document.getElementById('b-units').textContent = elecUnits;
   document.getElementById('b-erate').textContent = elecRate;
@@ -385,7 +372,6 @@ function calculate() {
   document.getElementById('b-other').textContent = `₹ ${other.toLocaleString('en-IN')}`;
   document.getElementById('b-total').textContent = `₹ ${Math.round(total).toLocaleString('en-IN')}`;
 
-  // Generate message
   const msg = generateMessage({
     room, month, rent,
     prevElec, newElec, elecUnits, elecRate, elecBill,
@@ -443,19 +429,21 @@ function copyMessage() {
   });
 }
 
-// Init with example values
 window.onload = () => {
-  document.getElementById('room').value = 'B4';
-  document.getElementById('rent').value = '7000';
-  document.getElementById('prevElec').value = '69';
-  document.getElementById('newElec').value = '117';
-  document.getElementById('elecRate').value = '11';
-  document.getElementById('prevWater').value = '15704';
-  document.getElementById('newWater').value = '22977';
-  document.getElementById('waterRate').value = '50';
-  document.getElementById('waterDiv').value = '1000';
+  // Auto-fill current month & year in IST
+  const now = new Date();
+  const istFormatter = new Intl.DateTimeFormat('en-IN', {
+    timeZone: 'Asia/Kolkata',
+    month: 'long',
+    year: 'numeric'
+  });
+  const parts = istFormatter.formatToParts(now);
+  const month = parts.find(p => p.type === 'month').value;
+  const year = parts.find(p => p.type === 'year').value;
+  document.getElementById('month').value = `${month} ${year}`;
   document.getElementById('other').value = '200';
-  document.getElementById('month').value = 'June 2025';
+
+  // All other fields intentionally left blank
   calculate();
 };
 </script>
